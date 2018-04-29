@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        tools:style="@style/CardView"
         android:id="@+id/course_item_view">
 
         <RelativeLayout
@@ -23,10 +26,10 @@
                 android:contentDescription="@string/course_cover" />
 
             <RelativeLayout
-                android:layout_width="wrap_content"
+                android:layout_width="210dp"
                 android:layout_height="wrap_content"
-                android:layout_toStartOf="@+id/course_cover"
-                android:layout_marginStart="15dp">
+                android:layout_marginStart="15dp"
+                android:layout_toEndOf="@+id/course_cover">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -34,16 +37,18 @@
                     android:id="@+id/course_name"
                     android:textColor="@color/black"
                     android:textSize="25sp"
-                    android:text="java" />
+                    android:ellipsize="end"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/is_popular"
                     android:textColor="@color/black"
-                    android:textSize="25sp"
-                    android:text="popular"
-                    android:layout_below="@+id/course_name" />
+                    android:visibility="gone"
+                    android:textSize="20sp"
+                    android:text="@string/popular"
+                    android:layout_marginTop="10dp"
+                    android:layout_below="@+id/course_name"/>
 
             </RelativeLayout>
 
@@ -56,7 +61,6 @@
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_favorite_border_black_48dp"
                 android:contentDescription="@string/favourite" />
-
 
         </RelativeLayout>
 
