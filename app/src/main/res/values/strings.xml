@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Stepik</string>
+    <string name="course_cover">course cover</string>
+    <string name="favourite">favourite</string>
 </resources>

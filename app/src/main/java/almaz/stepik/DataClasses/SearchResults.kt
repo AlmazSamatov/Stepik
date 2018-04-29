@@ -1,5 +1,14 @@
 package almaz.stepik.DataClasses
 
-data class Course(val courseTitle: String, val courseCover: String)
+import com.google.gson.annotations.SerializedName;
 
-data class Meta(val page: Int, val has_next: Boolean, val has_previous: Boolean)
+data class Course(@SerializedName("course_title") val courseTitle: String,
+                  @SerializedName("course_cover") val courseCover: String,
+                  val course: Int)
+
+data class Meta(val page: Int,
+                @SerializedName("has_next") val hasNext: Boolean,
+                @SerializedName("has_previous") val hasPrevious: Boolean)
+
+data class Response(val meta: Meta,
+                    @SerializedName("search-results") val searchResults: List<Course>)
