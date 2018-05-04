@@ -18,8 +18,8 @@ interface StepikAPI {
         fun create(): StepikAPI {
             val retrofit = Retrofit.Builder()
                     .baseUrl("https://stepik.org/api/")
-                    .addConverterFactory(GsonConverterFactory.create())
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                    .addConverterFactory(GsonConverterFactory.create())
                     .build()
 
             return retrofit.create(StepikAPI::class.java);

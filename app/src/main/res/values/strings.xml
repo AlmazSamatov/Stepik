@@ -3,4 +3,7 @@
     <string name="course_cover">course cover</string>
     <string name="favourite">favourite</string>
     <string name="popular">popular</string>
+    <string name="text_favorites">Favorites</string>
+    <string name="text_search">Search</string>
+    <string name="search_courses">Search courses</string>
 </resources>
