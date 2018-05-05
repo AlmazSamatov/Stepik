@@ -14,9 +14,7 @@ object RepositoryProvider {
         return searchRepository
     }
 
-    fun getFavoritesRepository(context: Context): AppDatabase? {
-        if(db == null)
-            db = Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "favorites").build()
-        return db
+    @Synchronized fun getFavoritesRepository(context: Context): AppDatabase? {
+        return Room.databaseBuilder(context.applicationContext, AppDatabase::class.java, "favorites").build()
     }
 }

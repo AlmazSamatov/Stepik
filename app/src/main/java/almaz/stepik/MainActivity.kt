@@ -61,12 +61,13 @@ class MainActivity: AppCompatActivity() {
             if(course.isFavorite){
                 img.setImageResource(R.drawable.ic_favorite_border_black_48dp)
                 presenter.deleteFromFavorites(course)
-                course.isFavorite = true
+                course.isFavorite = false
             } else{
                 img.setImageResource(R.drawable.ic_favorite_black_48dp)
                 presenter.addToFavorites(course)
-                course.isFavorite = false
+                course.isFavorite = true
             }
+            courses_recycler_view.adapter.notifyDataSetChanged()
         }
     }
 }

@@ -11,6 +11,7 @@ class Presenter(val view: MainActivity){
     private var subscriptionToSearch: Subscription? = null
     private var mode = Mode.COURSES
 
+
     fun initialize() {
         loadCourses("")
         subscribeToCourses()
@@ -55,6 +56,8 @@ class Presenter(val view: MainActivity){
         }
         mode = Mode.FAVORITES
     }
+
+
 
     fun unsubscribe(){
         if(subscriptionToSearch?.isUnsubscribed == false)

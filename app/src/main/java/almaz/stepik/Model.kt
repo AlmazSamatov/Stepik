@@ -10,7 +10,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
-import rx.Subscription
 import kotlin.concurrent.thread
 
 class Model(){
@@ -40,7 +39,7 @@ class Model(){
                     if(t2.isOnNext){
                         for(course in t1.searchResults){
                             for(favorite in t2.value!!){
-                                if(course.courseTitle == favorite.courseTitle){
+                                if(course.course == favorite.course){
                                     course.isFavorite = true
                                     break
                                 }
@@ -52,6 +51,7 @@ class Model(){
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe({
+                    db?.close()
                     adapter.setUserList(it.searchResults)
                 }, {
                     it.printStackTrace()
@@ -68,6 +68,7 @@ class Model(){
                 ?.observeOn(AndroidSchedulers.mainThread())
                 ?.subscribeOn(Schedulers.io())
                 ?.subscribe({
+                    db.close()
                     adapter.setUserList(it)
                 }, {
                     it.printStackTrace()
@@ -78,13 +79,13 @@ class Model(){
         val db = RepositoryProvider.getFavoritesRepository(context)
 
         course.isFavorite = true
-        thread(start = true) { db?.getCourseDao()?.insert(course) }
+        thread(start = true) { db?.getCourseDao()?.insert(course); db?.close() }
     }
 
     fun deleteCourse(context: Context, course: Course){
         val db = RepositoryProvider.getFavoritesRepository(context)
 
-        thread(start = true) { db?.getCourseDao()?.delete(course) }
+        thread(start = true) { db?.getCourseDao()?.delete(course); db?.close() }
     }
 
 }

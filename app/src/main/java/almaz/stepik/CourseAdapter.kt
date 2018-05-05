@@ -63,6 +63,10 @@ class CourseAdapter(val favoriteClickListener: (ImageView, Course) -> Unit): Rec
         return ViewHolder(v)
     }
 
+    override fun getItemViewType(position: Int): Int {
+        return position
+    }
+
     class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
         fun bindItems(course: Course, clickListener: (ImageView, Course) -> Unit) {
             itemView.course_name.text = course.courseTitle
