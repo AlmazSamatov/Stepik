@@ -5,20 +5,18 @@ import android.arch.persistence.room.Dao
 import android.arch.persistence.room.Query
 import android.arch.persistence.room.Delete
 import android.arch.persistence.room.Insert
-import io.reactivex.Single
+import io.reactivex.Maybe
 
 @Dao
 interface CourseDao {
 
     @Query("SELECT * FROM course")
-    fun getFavorites(): Single<List<Course>>
-
-    @Query("SELECT * FROM course WHERE courseTitle = :name")
-    fun getFavoritesByName(name: String): Single<List<Course>>
+    fun getFavorites(): Maybe<MutableList<Course>>
 
     @Insert
-    fun insert(course: Course)
+    fun insert(course: Course): Long
 
     @Delete
-    fun delete(course: Course)
+    fun delete(course: Course): Int
+
 }

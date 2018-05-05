@@ -8,11 +8,12 @@ import com.google.gson.annotations.SerializedName;
 @Entity(tableName = "course")
 data class Course(@SerializedName("course_title") val courseTitle: String,
                   @SerializedName("course_cover") val courseCover: String,
-                  @PrimaryKey val course: Int)
+                  @PrimaryKey val course: Int,
+                  var isFavorite: Boolean = false)
 
 data class Meta(val page: Int,
                 @SerializedName("has_next") val hasNext: Boolean,
                 @SerializedName("has_previous") val hasPrevious: Boolean)
 
 data class Response(val meta: Meta,
-                    @SerializedName("search-results") val searchResults: List<Course>)
+                    @SerializedName("search-results") val searchResults: MutableList<Course>)

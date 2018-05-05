@@ -1,8 +1,8 @@
 package almaz.stepik
 
+import almaz.stepik.DataClasses.Course
 import com.jakewharton.rxbinding.widget.RxTextView
 import rx.Subscription
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 class Presenter(val view: MainActivity){
@@ -25,7 +25,7 @@ class Presenter(val view: MainActivity){
     }
 
     private fun setEmptyList() {
-        view.getAdapter().setUserList(Collections.emptyList())
+        view.getAdapter().setUserList(mutableListOf())
     }
 
     fun subscribeToFavorites(){
@@ -33,13 +33,13 @@ class Presenter(val view: MainActivity){
         subscriptionToSearch = RxTextView.textChanges(view.getCoursesSearch())
                 .filter { it.isNotEmpty() }
                 .debounce(500, TimeUnit.MILLISECONDS)
-                .subscribe({ s -> model.getFavoritesByName(s.toString().trim(), view.getContext(),
-                        view.getAdapter()) })
+                .subscribe({ s -> view.getAdapter().filter.filter(s.toString().trim())})
     }
 
     fun changeToSearchView() {
         if(mode == Mode.FAVORITES){
             unsubscribe()
+            setSearchEmpty()
             loadCourses("")
             subscribeToCourses()
         }
@@ -49,6 +49,7 @@ class Presenter(val view: MainActivity){
     fun changeToFavoritesView() {
         if(mode == Mode.COURSES){
             unsubscribe()
+            setSearchEmpty()
             loadFavoritesFromDB()
             subscribeToFavorites()
         }
@@ -56,15 +57,28 @@ class Presenter(val view: MainActivity){
     }
 
     fun unsubscribe(){
-        subscriptionToSearch?.unsubscribe()
+        if(subscriptionToSearch?.isUnsubscribed == false)
+            subscriptionToSearch?.unsubscribe()
+    }
+
+    fun setSearchEmpty(){
+        view.getCoursesSearch().setText("")
     }
 
     fun loadFavoritesFromDB(){
         model.getFavorites(view.getContext(), view.getAdapter())
     }
 
-    fun loadCourses(query: String){
-        model.loadCourses(query, view.getAdapter())
+    fun loadCourses(query: String, page: Int = 1){
+        model.loadCourses(query, page, view.getContext(), view.getAdapter())
+    }
+
+    fun addToFavorites(course: Course) {
+        model.addToFavorite(view.getContext(), course)
+    }
+
+    fun deleteFromFavorites(course: Course) {
+        model.deleteCourse(view.getContext(), course)
     }
 
 }

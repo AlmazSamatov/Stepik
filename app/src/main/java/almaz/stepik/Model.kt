@@ -2,18 +2,53 @@ package almaz.stepik
 
 import almaz.stepik.API.RepositoryProvider
 import almaz.stepik.DataClasses.Course
+import almaz.stepik.DataClasses.Response
 import android.content.Context
+import io.reactivex.Notification
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
+import rx.Subscription
+import kotlin.concurrent.thread
 
 class Model(){
 
     private val searchRepository = RepositoryProvider.getSearchRepository()
+    private var subscriptionToWeb: Disposable? = null
+    private var subscriptionToDB: Disposable? = null
 
-    fun loadCourses(query: String, adapter: CourseAdapter, page: Int = 1){
 
-        searchRepository.searchCourses(query, page)
+    fun loadCourses(query: String, page: Int = 1, context: Context, adapter: CourseAdapter) {
+        val db = RepositoryProvider.getFavoritesRepository(context)
+
+        if(subscriptionToDB?.isDisposed == false)
+            subscriptionToDB?.dispose()
+
+        val webQuery = searchRepository.searchCourses(query, page)
+                                .subscribeOn(Schedulers.newThread())
+
+        val dbQuery = db?.getCourseDao()?.getFavorites()
+                                ?.subscribeOn(Schedulers.newThread())
+                                ?.toObservable()
+                                ?.materialize()
+
+        subscriptionToWeb = Observable.zip(webQuery, dbQuery,
+                BiFunction<Response, Notification<MutableList<Course>>, Response>
+                { t1, t2 ->
+                    if(t2.isOnNext){
+                        for(course in t1.searchResults){
+                            for(favorite in t2.value!!){
+                                if(course.courseTitle == favorite.courseTitle){
+                                    course.isFavorite = true
+                                    break
+                                }
+                            }
+                        }
+                    }
+                    return@BiFunction t1
+                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe({
@@ -26,20 +61,10 @@ class Model(){
     fun getFavorites(context: Context, adapter: CourseAdapter) {
         val db = RepositoryProvider.getFavoritesRepository(context)
 
-        db?.getCourseDao()?.getFavorites()
-                ?.observeOn(AndroidSchedulers.mainThread())
-                ?.subscribeOn(Schedulers.io())
-                ?.subscribe({
-                    adapter.setUserList(it)
-                }, {
-                    it.printStackTrace()
-                })
-    }
+        if(subscriptionToDB?.isDisposed == false)
+            subscriptionToDB?.dispose()
 
-    fun getFavoritesByName(name: String, context: Context, adapter: CourseAdapter) {
-        val db = RepositoryProvider.getFavoritesRepository(context)
-
-        db?.getCourseDao()?.getFavoritesByName(name)
+        subscriptionToDB = db?.getCourseDao()?.getFavorites()
                 ?.observeOn(AndroidSchedulers.mainThread())
                 ?.subscribeOn(Schedulers.io())
                 ?.subscribe({
@@ -52,7 +77,14 @@ class Model(){
     fun addToFavorite(context: Context, course: Course){
         val db = RepositoryProvider.getFavoritesRepository(context)
 
-        Observable.fromCallable { db?.getCourseDao()?.insert(course) }
-                .subscribeOn(Schedulers.io())
+        course.isFavorite = true
+        thread(start = true) { db?.getCourseDao()?.insert(course) }
     }
+
+    fun deleteCourse(context: Context, course: Course){
+        val db = RepositoryProvider.getFavoritesRepository(context)
+
+        thread(start = true) { db?.getCourseDao()?.delete(course) }
+    }
+
 }
