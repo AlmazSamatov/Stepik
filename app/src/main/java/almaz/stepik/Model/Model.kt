@@ -101,7 +101,8 @@ class Model(){
                     db.close()
                     adapter.setUserList(it)
                     hideProgressBar()
-                    showEmptyCourses()
+                    if(it.size == 0)
+                        showEmptyCourses()
                 }, {
                     db.close()
                     hideProgressBar()
