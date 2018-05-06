@@ -3,25 +3,31 @@ package almaz.stepik
 import almaz.stepik.DataClasses.Course
 import com.jakewharton.rxbinding.widget.RxTextView
 import rx.Subscription
+import rx.android.schedulers.AndroidSchedulers
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
-class Presenter(val view: MainActivity){
+class Presenter(private val view: View): PresenterInterface{
 
     val model = Model()
-    private var subscriptionToSearch: Subscription? = null
+    private var subscriptionToSearchInCourses: Subscription? = null
+    private var subscriptionToSearchInFavorites: Subscription? = null
     private var mode = Mode.COURSES
+    private var courseListFromWeb: MutableList<Course> = mutableListOf()
+    private var searchInCourses = ""
+    private var searchInFavorites = ""
 
 
-    fun initialize() {
-        loadCourses("")
+    override fun initialize() {
+        loadCourses(searchInCourses)
         subscribeToCourses()
     }
 
     private fun subscribeToCourses(){
-        setEmptyList()
-        subscriptionToSearch = RxTextView.textChanges(view.getCoursesSearch())
+        subscriptionToSearchInCourses = RxTextView.textChanges(view.getCoursesSearch())
                 .filter { it.isNotEmpty() }
-                .debounce(500, TimeUnit.MILLISECONDS)
+                .skip(1)
+                .debounce(500, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
                 .subscribe({ s -> loadCourses(s.toString().trim()) })
     }
 
@@ -29,59 +35,101 @@ class Presenter(val view: MainActivity){
         view.getAdapter().setUserList(mutableListOf())
     }
 
-    fun subscribeToFavorites(){
+    override fun subscribeToFavorites(){
         setEmptyList()
-        subscriptionToSearch = RxTextView.textChanges(view.getCoursesSearch())
+        subscriptionToSearchInFavorites = RxTextView.textChanges(view.getCoursesSearch())
                 .filter { it.isNotEmpty() }
-                .debounce(500, TimeUnit.MILLISECONDS)
+                .skip(1)
+                .debounce(500, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
                 .subscribe({ s -> view.getAdapter().filter.filter(s.toString().trim())})
     }
 
-    fun changeToSearchView() {
+    override fun changeToSearchView() {
         if(mode == Mode.FAVORITES){
-            unsubscribe()
-            setSearchEmpty()
-            loadCourses("")
+            disposeFromDB()
+            unsubscribe(subscriptionToSearchInFavorites)
+            saveFavoritesState()
+            if(courseListFromWeb.size == 0)
+                loadCourses(searchInCourses)
+            else
+                restoreCoursesState()
             subscribeToCourses()
         }
         mode = Mode.COURSES
     }
 
-    fun changeToFavoritesView() {
+    override fun changeToFavoritesView() {
         if(mode == Mode.COURSES){
-            unsubscribe()
-            setSearchEmpty()
+            saveCoursesState()
+            disposeFromWeb()
+            unsubscribe(subscriptionToSearchInCourses)
             loadFavoritesFromDB()
             subscribeToFavorites()
+            restoreFavoritesState()
         }
         mode = Mode.FAVORITES
     }
 
-
-
-    fun unsubscribe(){
-        if(subscriptionToSearch?.isUnsubscribed == false)
-            subscriptionToSearch?.unsubscribe()
+    private fun unsubscribe(subscription: Subscription?){
+        subscription?.unsubscribe()
     }
 
-    fun setSearchEmpty(){
-        view.getCoursesSearch().setText("")
+    private fun loadFavoritesFromDB(){
+        view.showProgressBar()
+        view.hideEmptyCourses()
+        model.getFavorites(view.getContext(), view.getAdapter(), view::hideProgressBar, view::showEmptyCourses)
     }
 
-    fun loadFavoritesFromDB(){
-        model.getFavorites(view.getContext(), view.getAdapter())
+    private fun loadCourses(query: String, page: Int = 1){
+        view.showProgressBar()
+        view.hideEmptyCourses()
+        model.loadCourses(query, page, view.getContext(), view.getAdapter(), view::hideProgressBar,
+                view::showEmptyCourses, true)
     }
 
-    fun loadCourses(query: String, page: Int = 1){
-        model.loadCourses(query, page, view.getContext(), view.getAdapter())
-    }
-
-    fun addToFavorites(course: Course) {
+    override fun addToFavorites(course: Course) {
         model.addToFavorite(view.getContext(), course)
     }
 
-    fun deleteFromFavorites(course: Course) {
+    override fun deleteFromFavorites(course: Course) {
         model.deleteCourse(view.getContext(), course)
     }
 
+    private fun saveCoursesState(){
+        searchInCourses = view.getCoursesSearch().text.toString()
+        courseListFromWeb.clear()
+        courseListFromWeb.addAll(view.getAdapter().getCourseList())
+    }
+
+    private fun restoreCoursesState(){
+        view.getCoursesSearch().setText(searchInCourses)
+        view.getAdapter().setUserList(courseListFromWeb)
+    }
+
+    private fun saveFavoritesState(){
+        searchInFavorites = view.getCoursesSearch().text.toString()
+    }
+
+    private fun restoreFavoritesState(){
+        view.getCoursesSearch().setText(searchInFavorites)
+    }
+
+    override fun onLoadMore() {
+        view.showItemProgressBar()
+        model.loadCourses(context = view.getContext(), adapter =  view.getAdapter(),
+                hideProgressBar = view::hideItemProgressBar, isSet = false,
+                showEmptyCourses = view::showEmptyCourses)
+    }
+
+    private fun disposeFromWeb(){
+        model.disposeFromWeb()
+        view.hideProgressBar()
+        view.hideItemProgressBar()
+    }
+
+    private fun disposeFromDB(){
+        model.disposeFromDB()
+        view.hideEmptyCourses()
+        view.hideProgressBar()
+    }
 }

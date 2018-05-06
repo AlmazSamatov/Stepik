@@ -10,7 +10,7 @@ interface CourseDao{
     @Query("SELECT * FROM course")
     fun getFavorites(): Maybe<MutableList<Course>>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(course: Course): Long
 
     @Delete

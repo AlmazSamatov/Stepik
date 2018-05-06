@@ -28,7 +28,7 @@ class CourseAdapter(val favoriteClickListener: (ImageView, Course) -> Unit): Rec
             } else{
                 courseListFiltered.clear()
                 courseList.filterTo(courseListFiltered) {
-                    it.courseTitle.toLowerCase().contains(query)
+                    it.courseTitle?.toLowerCase()?.contains(query) == true
                 }
             }
 
@@ -74,6 +74,8 @@ class CourseAdapter(val favoriteClickListener: (ImageView, Course) -> Unit): Rec
             clickListener(itemView.addToFavourites, course)
             if(course.isFavorite)
                 itemView.addToFavourites.setImageResource(R.drawable.ic_favorite_black_48dp)
+            else
+                itemView.addToFavourites.setImageResource(R.drawable.ic_favorite_border_black_48dp)
         }
 
         fun loadImg(img: ImageView, url: String?){
@@ -89,6 +91,14 @@ class CourseAdapter(val favoriteClickListener: (ImageView, Course) -> Unit): Rec
         return filter
     }
 
+    fun getCourseList(): MutableList<Course>{
+        return courseList
+    }
+
+    fun addUserList(searchResults: MutableList<Course>) {
+        courseList.addAll(searchResults)
+        courseListFiltered.addAll(searchResults)
+    }
 }
 
 

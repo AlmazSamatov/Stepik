@@ -6,9 +6,9 @@ import android.graphics.drawable.Drawable
 import com.google.gson.annotations.SerializedName;
 
 @Entity(tableName = "course")
-data class Course(@SerializedName("course_title") val courseTitle: String,
-                  @SerializedName("course_cover") val courseCover: String,
-                  @PrimaryKey val course: Int,
+data class Course(@SerializedName("course_title") val courseTitle: String?,
+                  @SerializedName("course_cover") val courseCover: String?,
+                  @PrimaryKey val id: Int,
                   var isFavorite: Boolean = false)
 
 data class Meta(val page: Int,

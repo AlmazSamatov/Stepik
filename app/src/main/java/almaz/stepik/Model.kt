@@ -17,52 +17,81 @@ class Model(){
     private val searchRepository = RepositoryProvider.getSearchRepository()
     private var subscriptionToWeb: Disposable? = null
     private var subscriptionToDB: Disposable? = null
+    private var lastQuery = ""
+    private var lastPage = 0
+    private var hasNext = false
 
-
-    fun loadCourses(query: String, page: Int = 1, context: Context, adapter: CourseAdapter) {
+    fun loadCourses(query: String = "", page: Int = 1, context: Context, adapter: CourseAdapter,
+                    hideProgressBar: () -> Unit, showEmptyCourses: () -> Unit, isSet: Boolean) {
         val db = RepositoryProvider.getFavoritesRepository(context)
 
-        if(subscriptionToDB?.isDisposed == false)
-            subscriptionToDB?.dispose()
+        if(isSet){
+            lastQuery = query
+            lastPage = page
+        }
 
-        val webQuery = searchRepository.searchCourses(query, page)
-                                .subscribeOn(Schedulers.newThread())
+        if(!isSet && hasNext || isSet){
 
-        val dbQuery = db?.getCourseDao()?.getFavorites()
-                                ?.subscribeOn(Schedulers.newThread())
-                                ?.toObservable()
-                                ?.materialize()
+            disposeFromWeb()
+            disposeFromDB()
 
-        subscriptionToWeb = Observable.zip(webQuery, dbQuery,
-                BiFunction<Response, Notification<MutableList<Course>>, Response>
-                { t1, t2 ->
-                    if(t2.isOnNext){
-                        for(course in t1.searchResults){
-                            for(favorite in t2.value!!){
-                                if(course.course == favorite.course){
-                                    course.isFavorite = true
-                                    break
+            val webQuery =  if(isSet) searchRepository.searchCourses(query, page)
+                                        .subscribeOn(Schedulers.newThread())
+                            else
+                                searchRepository.searchCourses(lastQuery, lastPage + 1)
+                                        .subscribeOn(Schedulers.newThread())
+
+            val dbQuery = db?.getCourseDao()?.getFavorites()
+                    ?.subscribeOn(Schedulers.newThread())
+                    ?.toObservable()
+                    ?.materialize()
+
+            subscriptionToWeb = Observable.zip(webQuery, dbQuery,
+                    BiFunction<Response, Notification<MutableList<Course>>, Response>
+                    { t1, t2 ->
+                        if(t2.isOnNext){
+                            for(course in t1.searchResults){
+                                for(favorite in t2.value!!){
+                                    if(course.id == favorite.id){
+                                        course.isFavorite = true
+                                        break
+                                    }
                                 }
                             }
                         }
-                    }
-                    return@BiFunction t1
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe({
-                    db?.close()
-                    adapter.setUserList(it.searchResults)
-                }, {
-                    it.printStackTrace()
-                })
+                        return@BiFunction t1
+                    })
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeOn(Schedulers.io())
+                    .subscribe({
+                        db?.close()
+                        hasNext = it.meta.hasNext
+                        val courses = it.searchResults.filter { course -> course.courseTitle != null } as MutableList<Course>
+                        if(isSet) {
+                            adapter.setUserList(courses)
+                            if(courses.size == 0)
+                                showEmptyCourses()
+                        } else {
+                            adapter.addUserList(courses)
+                            lastPage++
+                        }
+                        hideProgressBar()
+                    }, {
+                        db?.close()
+                        hideProgressBar()
+                        if(isSet)
+                            showEmptyCourses()
+                        it.printStackTrace()
+                    })
+        } else{
+            hideProgressBar()
+        }
     }
 
-    fun getFavorites(context: Context, adapter: CourseAdapter) {
+    fun getFavorites(context: Context, adapter: CourseAdapter, hideProgressBar: () -> Unit, showEmptyCourses: () -> Unit) {
         val db = RepositoryProvider.getFavoritesRepository(context)
 
-        if(subscriptionToDB?.isDisposed == false)
-            subscriptionToDB?.dispose()
+        disposeFromDB()
 
         subscriptionToDB = db?.getCourseDao()?.getFavorites()
                 ?.observeOn(AndroidSchedulers.mainThread())
@@ -70,7 +99,12 @@ class Model(){
                 ?.subscribe({
                     db.close()
                     adapter.setUserList(it)
+                    hideProgressBar()
+                    showEmptyCourses()
                 }, {
+                    db.close()
+                    hideProgressBar()
+                    showEmptyCourses()
                     it.printStackTrace()
                 })
     }
@@ -86,6 +120,14 @@ class Model(){
         val db = RepositoryProvider.getFavoritesRepository(context)
 
         thread(start = true) { db?.getCourseDao()?.delete(course); db?.close() }
+    }
+
+    fun disposeFromWeb(){
+        subscriptionToWeb?.dispose()
+    }
+
+    fun disposeFromDB() {
+        subscriptionToDB?.dispose()
     }
 
 }

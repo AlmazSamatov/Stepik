@@ -7,14 +7,15 @@ import android.media.Image
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
+import android.view.View
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity: AppCompatActivity() {
+class MainActivity: AppCompatActivity(), almaz.stepik.View {
 
-    private val presenter = Presenter(this)
+    private val presenter: PresenterInterface = Presenter(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,21 +43,46 @@ class MainActivity: AppCompatActivity() {
         courses_recycler_view.setHasFixedSize(true)
         courses_recycler_view.layoutManager = LinearLayoutManager(this)
         courses_recycler_view.adapter = CourseAdapter({ imageView: ImageView, course: Course -> onFavoriteClickListener(imageView, course)})
+        courses_recycler_view.addOnScrollListener(object : EndlessRecyclerOnScrollListener(){
+            override fun onLoadMore() {
+                presenter.onLoadMore()
+            }
+        })
     }
 
-    fun getCoursesSearch(): EditText{
-        return courses_search
+    override fun getCoursesSearch(): EditText =  courses_search
+
+    override fun getAdapter() = courses_recycler_view.adapter as CourseAdapter
+
+    override fun getContext(): Context = applicationContext
+
+    override fun showProgressBar(){
+        courses.visibility = View.GONE
+        progressBar.visibility = View.VISIBLE
     }
 
-    fun getAdapter(): CourseAdapter{
-        return courses_recycler_view.adapter as CourseAdapter
+    override fun hideProgressBar(){
+        courses.visibility = View.VISIBLE
+        progressBar.visibility = View.GONE
     }
 
-    fun getContext(): Context{
-        return applicationContext
+    override fun hideItemProgressBar(){
+        item_progress_bar.visibility = View.GONE
     }
 
-    fun onFavoriteClickListener(img: ImageView, course: Course){
+    override fun showItemProgressBar(){
+        item_progress_bar.visibility = View.VISIBLE
+    }
+
+    override fun showEmptyCourses(){
+        empty_courses.visibility = View.VISIBLE
+    }
+
+    override fun hideEmptyCourses(){
+        empty_courses.visibility = View.GONE
+    }
+
+    private fun onFavoriteClickListener(img: ImageView, course: Course){
         img.setOnClickListener {
             if(course.isFavorite){
                 img.setImageResource(R.drawable.ic_favorite_border_black_48dp)
