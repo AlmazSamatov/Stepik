@@ -1,6 +1,6 @@
 package almaz.stepik.API
 
-import almaz.stepik.AppDatabase
+import almaz.stepik.Database.AppDatabase
 import android.arch.persistence.room.Room
 import android.content.Context
 

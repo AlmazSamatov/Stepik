@@ -1,5 +1,6 @@
-package almaz.stepik
+package almaz.stepik.View
 
+import almaz.stepik.RecyclerView.CourseAdapter
 import android.content.Context
 import android.widget.EditText
 

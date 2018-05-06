@@ -1,15 +1,14 @@
 package almaz.stepik
 
 import almaz.stepik.DataClasses.Course
+import almaz.stepik.Database.AppDatabase
 import android.arch.persistence.room.Room
 import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
 import org.junit.Before
 import org.junit.Test
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import org.junit.After
-import org.junit.runner.RunWith
 
 class DatabaseTesting{
 

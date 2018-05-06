@@ -1,19 +1,22 @@
-package almaz.stepik
+package almaz.stepik.View
 
 import almaz.stepik.DataClasses.Course
+import almaz.stepik.Presenter.Presenter
+import almaz.stepik.Presenter.PresenterInterface
+import almaz.stepik.R
+import almaz.stepik.RecyclerView.CourseAdapter
+import almaz.stepik.RecyclerView.EndlessRecyclerOnScrollListener
 import android.content.Context
-import android.graphics.drawable.Drawable
-import android.media.Image
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View
+import almaz.stepik.View.View as MyView
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity: AppCompatActivity(), almaz.stepik.View {
+class MainActivity: AppCompatActivity(), MyView {
 
     private val presenter: PresenterInterface = Presenter(this)
 
@@ -42,7 +45,7 @@ class MainActivity: AppCompatActivity(), almaz.stepik.View {
     private fun initializeRecyclerView(){
         courses_recycler_view.setHasFixedSize(true)
         courses_recycler_view.layoutManager = LinearLayoutManager(this)
-        courses_recycler_view.adapter = CourseAdapter({ imageView: ImageView, course: Course -> onFavoriteClickListener(imageView, course)})
+        courses_recycler_view.adapter = CourseAdapter({ imageView: ImageView, course: Course -> onFavoriteClickListener(imageView, course) })
         courses_recycler_view.addOnScrollListener(object : EndlessRecyclerOnScrollListener(){
             override fun onLoadMore() {
                 presenter.onLoadMore()

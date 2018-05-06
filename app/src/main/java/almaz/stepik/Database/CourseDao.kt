@@ -1,4 +1,4 @@
-package almaz.stepik
+package almaz.stepik.Database
 
 import almaz.stepik.DataClasses.Course
 import android.arch.persistence.room.*

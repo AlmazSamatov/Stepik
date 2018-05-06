@@ -1,6 +1,7 @@
-package almaz.stepik
+package almaz.stepik.RecyclerView
 
 import almaz.stepik.DataClasses.Course
+import almaz.stepik.R
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
@@ -8,10 +9,8 @@ import android.view.ViewGroup
 import android.widget.Filter
 import android.widget.Filterable
 import android.widget.ImageView
-import android.widget.TextView
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.course_item.view.*
-import java.util.*
 
 class CourseAdapter(val favoriteClickListener: (ImageView, Course) -> Unit): RecyclerView.Adapter<CourseAdapter.ViewHolder>(), Filterable {
 

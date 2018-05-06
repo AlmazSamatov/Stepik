@@ -1,8 +1,9 @@
-package almaz.stepik
+package almaz.stepik.Model
 
 import almaz.stepik.API.RepositoryProvider
 import almaz.stepik.DataClasses.Course
 import almaz.stepik.DataClasses.Response
+import almaz.stepik.RecyclerView.CourseAdapter
 import android.content.Context
 import io.reactivex.Notification
 import io.reactivex.Observable

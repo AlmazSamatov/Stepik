@@ -1,13 +1,15 @@
-package almaz.stepik
+package almaz.stepik.Presenter
 
 import almaz.stepik.DataClasses.Course
+import almaz.stepik.DataClasses.Mode
+import almaz.stepik.Model.Model
+import almaz.stepik.View.View
 import com.jakewharton.rxbinding.widget.RxTextView
 import rx.Subscription
 import rx.android.schedulers.AndroidSchedulers
 import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 
-class Presenter(private val view: View): PresenterInterface{
+class Presenter(private val view: View): PresenterInterface {
 
     val model = Model()
     private var subscriptionToSearchInCourses: Subscription? = null

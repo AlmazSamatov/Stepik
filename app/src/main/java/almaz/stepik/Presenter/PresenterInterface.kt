@@ -1,4 +1,4 @@
-package almaz.stepik
+package almaz.stepik.Presenter
 
 import almaz.stepik.DataClasses.Course
 
