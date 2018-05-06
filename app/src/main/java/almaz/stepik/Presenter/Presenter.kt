@@ -127,6 +127,7 @@ class Presenter(private val view: View): PresenterInterface {
         model.disposeFromWeb()
         view.hideProgressBar()
         view.hideItemProgressBar()
+        view.hideEmptyCourses()
     }
 
     private fun disposeFromDB(){
